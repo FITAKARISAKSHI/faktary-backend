@@ -1,62 +1,63 @@
-// server.js (updated - use smtp.gmail.com)
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const nodemailer = require("nodemailer");
-require("dotenv").config();
+// server.js
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const { MailerSend } = require('mailersend');
 
 const app = express();
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"],
-}));
-
+// Middlewares
+app.use(cors());
 app.use(bodyParser.json());
 
-// ---- Updated transporter: use explicit SMTP host/port/secure ----
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // true for 465, false for 587
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_APP_PASS,
-  },
-  // optional: increase timeout if needed
-  // connectionTimeout: 10000,
-  // greetingTimeout: 10000,
-  // socketTimeout: 10000,
+// MailerSend client
+const mailerSend = new MailerSend({
+  apiKey: process.env.MAILERSEND_API_KEY, // Put your MailerSend token in .env
 });
 
-transporter.verify((err, success) => {
-  if (err) console.log("MAIL ERROR:", err);
-  else console.log("✅ Mail server ready");
-});
+// Emails
+const FROM_EMAIL = process.env.FROM_EMAIL; // Must be verified in MailerSend
+const TO_EMAIL = process.env.TO_EMAIL;     // Where you want to receive all form submissions
 
-app.post("/api/contact", async (req, res) => {
+// Contact route
+app.post('/api/contact', async (req, res) => {
   const { name, email, phone, message } = req.body;
 
   try {
-    await transporter.sendMail({
-      from: process.env.MAIL_USER,
-      to: process.env.MAIL_USER,
-      subject: "New Message (Contact Page)",
-      text: `Name: ${name}
-Email: ${email}
-Phone: ${phone}
-Message: ${message}`,
+    await mailerSend.email.send({
+      from: FROM_EMAIL,
+      to: [TO_EMAIL],
+      subject: 'New Message (Contact Page)',
+      text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message}`,
     });
 
     res.status(200).json({ success: true });
   } catch (err) {
-    console.error("SEND MAIL ERROR:", err);
+    console.log('Contact Mail Error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// ReachUs route
+app.post('/api/reachus', async (req, res) => {
+  const { name, company, fullPhone, email, message } = req.body;
+
+  try {
+    await mailerSend.email.send({
+      from: FROM_EMAIL,
+      to: [TO_EMAIL],
+      subject: 'New Business Inquiry (Reach Us Form)',
+      text: `Name: ${name}\nCompany: ${company}\nPhone: ${fullPhone}\nEmail: ${email}\nMessage: ${message}`,
+    });
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.log('ReachUs Mail Error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Start server
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () =>
-  console.log(`✅ Server running on ${PORT}`)
-);
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
