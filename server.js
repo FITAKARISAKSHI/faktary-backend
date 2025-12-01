@@ -11,14 +11,19 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// Check environment variables
+console.log("MAILERSEND_API_KEY:", process.env.MAILERSEND_API_KEY ? "✅ set" : "❌ missing");
+console.log("FROM_EMAIL:", process.env.FROM_EMAIL ? process.env.FROM_EMAIL : "❌ missing");
+console.log("TO_EMAIL:", process.env.TO_EMAIL ? process.env.TO_EMAIL : "❌ missing");
+
 // MailerSend client
 const mailerSend = new MailerSend({
-  apiKey: process.env.MAILERSEND_API_KEY, // Put your MailerSend token in .env
+  apiKey: process.env.MAILERSEND_API_KEY,
 });
 
 // Emails
-const FROM_EMAIL = process.env.FROM_EMAIL; // Must be verified in MailerSend
-const TO_EMAIL = process.env.TO_EMAIL;     // Where you want to receive all form submissions
+const FROM_EMAIL = process.env.FROM_EMAIL;
+const TO_EMAIL = process.env.TO_EMAIL;
 
 // Contact route
 app.post('/api/contact', async (req, res) => {
@@ -34,7 +39,7 @@ app.post('/api/contact', async (req, res) => {
 
     res.status(200).json({ success: true });
   } catch (err) {
-    console.log('Contact Mail Error:', err);
+    console.log('Contact Mail Error:', err.response ? err.response.data : err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -53,7 +58,7 @@ app.post('/api/reachus', async (req, res) => {
 
     res.status(200).json({ success: true });
   } catch (err) {
-    console.log('ReachUs Mail Error:', err);
+    console.log('ReachUs Mail Error:', err.response ? err.response.data : err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
