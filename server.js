@@ -1,3 +1,4 @@
+// server.js (updated - use smtp.gmail.com)
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -14,12 +15,19 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
+// ---- Updated transporter: use explicit SMTP host/port/secure ----
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // true for 465, false for 587
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_APP_PASS,
   },
+  // optional: increase timeout if needed
+  // connectionTimeout: 10000,
+  // greetingTimeout: 10000,
+  // socketTimeout: 10000,
 });
 
 transporter.verify((err, success) => {
@@ -43,6 +51,7 @@ Message: ${message}`,
 
     res.status(200).json({ success: true });
   } catch (err) {
+    console.error("SEND MAIL ERROR:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
