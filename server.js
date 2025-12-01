@@ -31,8 +31,16 @@ app.post('/api/contact', async (req, res) => {
 
   try {
     await mailerSend.email.send({
-      from: FROM_EMAIL,
-      to: [TO_EMAIL],
+      from: {
+        email: FROM_EMAIL,
+        name: "Faktary"
+      },
+      to: [
+        {
+          email: TO_EMAIL,
+          name: "Faktary"
+        }
+      ],
       subject: 'New Message (Contact Page)',
       text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message}`,
     });
@@ -50,8 +58,16 @@ app.post('/api/reachus', async (req, res) => {
 
   try {
     await mailerSend.email.send({
-      from: FROM_EMAIL,
-      to: [TO_EMAIL],
+      from: {
+        email: FROM_EMAIL,
+        name: "Faktary"
+      },
+      to: [
+        {
+          email: TO_EMAIL,
+          name: "Faktary"
+        }
+      ],
       subject: 'New Business Inquiry (Reach Us Form)',
       text: `Name: ${name}\nCompany: ${company}\nPhone: ${fullPhone}\nEmail: ${email}\nMessage: ${message}`,
     });
