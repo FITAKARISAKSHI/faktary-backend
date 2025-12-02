@@ -1,84 +1,143 @@
 // server.js
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const { MailerSend } = require('mailersend');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const { MailerSend } = require("mailersend");
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+/* =======================
+   MIDDLEWARES
+======================= */
+
+// CORS (Frontend allow)
+app.use(
+  cors({
+    origin: "https://faktary-frontend.onrender.com",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
+// Body parser
 app.use(bodyParser.json());
 
-// Check environment variables
-console.log("MAILERSEND_API_KEY:", process.env.MAILERSEND_API_KEY ? "✅ set" : "❌ missing");
-console.log("FROM_EMAIL:", process.env.FROM_EMAIL ? process.env.FROM_EMAIL : "❌ missing");
-console.log("TO_EMAIL:", process.env.TO_EMAIL ? process.env.TO_EMAIL : "❌ missing");
+/* =======================
+   ENV CHECK (LOGS)
+======================= */
 
-// MailerSend client
+console.log(
+  "MAILERSEND_API_KEY:",
+  process.env.MAILERSEND_API_KEY ? "✅ set" : "❌ missing"
+);
+console.log(
+  "FROM_EMAIL:",
+  process.env.FROM_EMAIL ? process.env.FROM_EMAIL : "❌ missing"
+);
+console.log(
+  "TO_EMAIL:",
+  process.env.TO_EMAIL ? process.env.TO_EMAIL : "❌ missing"
+);
+
+/* =======================
+   MAILERSEND SETUP
+======================= */
+
 const mailerSend = new MailerSend({
   apiKey: process.env.MAILERSEND_API_KEY,
 });
 
-// Emails
 const FROM_EMAIL = process.env.FROM_EMAIL;
 const TO_EMAIL = process.env.TO_EMAIL;
 
-// Contact route
-app.post('/api/contact', async (req, res) => {
+/* =======================
+   ROUTES
+======================= */
+
+// Root test route
+app.get("/", (req, res) => {
+  res.send("Backend is running ✅");
+});
+
+// Contact form
+app.post("/api/contact", async (req, res) => {
   const { name, email, phone, message } = req.body;
 
   try {
     await mailerSend.email.send({
       from: {
         email: FROM_EMAIL,
-        name: "Faktary"
+        name: "Faktary",
       },
       to: [
         {
           email: TO_EMAIL,
-          name: "Faktary"
-        }
+          name: "Faktary",
+        },
       ],
-      subject: 'New Message (Contact Page)',
-      text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message}`,
+      subject: "New Message (Contact Page)",
+      text: `Name: ${name}
+Email: ${email}
+Phone: ${phone}
+Message: ${message}`,
     });
 
     res.status(200).json({ success: true });
   } catch (err) {
-    console.log('Contact Mail Error:', err.response ? err.response.data : err);
-    res.status(500).json({ success: false, error: err.message });
+    console.log(
+      "Contact Mail Error:",
+      err.response ? err.response.data : err
+    );
+    res.status(500).json({
+      success: false,
+      error: "Mail sending failed",
+    });
   }
 });
 
-// ReachUs route
-app.post('/api/reachus', async (req, res) => {
+// Reach Us form
+app.post("/api/reachus", async (req, res) => {
   const { name, company, fullPhone, email, message } = req.body;
 
   try {
     await mailerSend.email.send({
       from: {
         email: FROM_EMAIL,
-        name: "Faktary"
+        name: "Faktary",
       },
       to: [
         {
           email: TO_EMAIL,
-          name: "Faktary"
-        }
+          name: "Faktary",
+        },
       ],
-      subject: 'New Business Inquiry (Reach Us Form)',
-      text: `Name: ${name}\nCompany: ${company}\nPhone: ${fullPhone}\nEmail: ${email}\nMessage: ${message}`,
+      subject: "New Business Inquiry (Reach Us Form)",
+      text: `Name: ${name}
+Company: ${company}
+Phone: ${fullPhone}
+Email: ${email}
+Message: ${message}`,
     });
 
     res.status(200).json({ success: true });
   } catch (err) {
-    console.log('ReachUs Mail Error:', err.response ? err.response.data : err);
-    res.status(500).json({ success: false, error: err.message });
+    console.log(
+      "ReachUs Mail Error:",
+      err.response ? err.response.data : err
+    );
+    res.status(500).json({
+      success: false,
+      error: "Mail sending failed",
+    });
   }
 });
 
-// Start server
+/* =======================
+   SERVER START
+======================= */
+
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
